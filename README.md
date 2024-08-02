@@ -10,6 +10,8 @@ Kaibu is a web application for visualizing and annotating multi-dimensional imag
 ----
 ***WARNING: This is a work-in-progress repo, you are welcome to try it out but it's not ready for use in production yet.***
 
+m-albert: rying it out here.
+
 Documentation: https://kaibu.org/docs/
 
 ## How to use Kaibu?
