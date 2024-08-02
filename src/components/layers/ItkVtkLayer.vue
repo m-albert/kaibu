@@ -26,7 +26,7 @@
         :step="0.1"
       ></b-slider>
     </b-field>
-    <b-field v-if="layer" label="Blending2">
+    <b-field v-if="layer" label="Blending">
       <b-select placeholder="Select a mode" v-model="blending">
         <option v-for="b in blendingOptions" :value="b" :key="b">
           {{ b }}

@@ -31,6 +31,21 @@
           </button>
         </b-tooltip>
 
+        <!-- <b-tooltip label="Modify" position="is-top">
+          <button
+            :class="{ 'is-primary': !config.draw_enable && selectIsActive }"
+            @click="
+              enableSelectInteraction();
+              config.draw_enable = false;
+              // updateDrawInteraction();
+              // $forceUpdate();
+            "
+            class="button is-medium"
+          >
+            <b-icon icon="cursor-default" size="is-medium"> </b-icon>
+          </button>
+        </b-tooltip> -->
+
         <b-tooltip label="Draw Mode" position="is-top">
           <button
             :class="{ 'is-primary': config.draw_enable }"
@@ -262,7 +277,8 @@ import "vue-swatches/dist/vue-swatches.css";
 import { Map } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import { Circle, Style, Fill, Stroke, Text } from "ol/style";
-import { Draw, Select } from "ol/interaction";
+// eslint-disable-next-line no-unused-vars
+import { Draw, Select, Modify } from "ol/interaction";
 import { Vector } from "ol/source";
 import { GeoJSON } from "ol/format";
 import Polygon from "ol/geom/Polygon";
@@ -270,6 +286,10 @@ import { intersects } from "ol/extent";
 import { createRegularPolygon, createBox } from "ol/interaction/Draw";
 import * as turf from "@turf/turf";
 import { v4 as uuidv4 } from "uuid";
+
+// eslint-disable-next-line no-unused-vars
+import MultiPoint from 'ol/geom/MultiPoint.js';
+
 
 function getRandomColor() {
   var letters = "0123456789ABCDEF";
@@ -724,16 +744,67 @@ export default {
         const features = this.getFeaturesFromConfig();
         this.vector_source.addFeatures(features);
       }
+
+    //   // eslint-disable-next-line no-unused-vars
+    //   const styles = [
+    //   /* We are using two different styles for the polygons:
+    //   *  - The first style is for the polygons themselves.
+    //   *  - The second style is to draw the vertices of the polygons.
+    //   *    In a custom `geometry` function the vertices of a polygon are
+    //   *    returned as `MultiPoint` geometry, which will be used to render
+    //   *    the style.
+    //   */
+    //   new Style({
+    //     stroke: new Stroke({
+    //       color: 'blue',
+    //       width: 3,
+    //     }),
+    //     fill: new Fill({
+    //       color: 'rgba(0, 0, 255, 0.1)',
+    //     }),
+    //   }),
+    //   new Style({
+    //     image: new Circle({
+    //       radius: 5,
+    //       fill: new Fill({
+    //         color: 'orange',
+    //       }),
+    //     }),
+    //     geometry: function (feature) {
+    //       // return the coordinates of the first ring of the polygon
+    //       // check if the feature is a polygon
+    //       console.log(feature.getGeometry().getType());
+    //       if (feature.getGeometry().getType() !== 'Polygon') {
+    //         return null;
+    //       }
+    //       console.log(feature.getGeometry().getCoordinates());
+    //       const coordinates = feature.getGeometry().getCoordinates()[0];
+    //       return new MultiPoint(coordinates);
+    //     },
+    //   }),
+    // ];
+
       const vector_layer = new VectorLayer({
-        source: this.vector_source
+        source: this.vector_source,
+        // style: styles
       });
       vector_layer.setStyle(this.featureStyle);
+      // vector_layer.setStyle(
+      //   [
+      //     this.featureStyle,
+      //    // styles[1],
+      //   ]
+      // );
 
       this.select = new Select({
         wrapX: false
       });
+      this.modify = new Modify({
+        features: this.select.getFeatures(),
+      });
       this.select.on("select", this.selectCallBack.bind(this));
       this.map.addInteraction(this.select);
+      this.map.addInteraction(this.modify);
       this.disableSelectInteraction();
       vector_layer.getLayerAPI = this.getLayerAPI;
       return vector_layer;
