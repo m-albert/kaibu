@@ -86,6 +86,8 @@ Add an image layer
 - options:
     - `type`: String, image layer type, currently supports `2d-image`(OpenLayers 2D image layer), `itk-vtk` (ITK/VTK Viewer 2D/3D layer) or `vector`(OpenLayers vector feature layer).
     - `name`: String, name of the image layer
+    - `color_map`: String, initial ITK/VTK color-map preset, for example `Grayscale`.
+    - `color_map_component`: Integer, image component to which `color_map` is applied; defaults to 0.
 **Returns**
  A layer object with the following fields:
  - `id`: String, the id of the layer
@@ -93,6 +95,8 @@ Add an image layer
  - `set_image`: Function, a function used to update the image in the layer
  - `set_blending`: Function, a function used to update the blending model of the layer
  - `set_opacity`: Function, a function used to update the opacity of the layer
+ - `set_image_color_map`: Function, set an image color-map preset using `(preset, component=0)`.
+ - `get_image_color_map`: Function, get the image color-map preset for a component.
  - Other ITK/VTK Viewer functions defined at https://kitware.github.io/itk-vtk-viewer/api/ (Note: the function names should be converted from camel case to snake case, e.g. `setUnits` will become `set_units`)
 
 
@@ -187,6 +191,11 @@ An object with the layer api functions:
  - `remove_features`: Function, remove an array of features, it takes one argument:
     - `ids`: Array, an array of features ids
  - `get_features`: Function, get all the features of the layer, it takes no argument
+ - `set_interaction_mode`: Function, activate `cursor`, `select`, or `draw` mode.
+ - `get_interaction_mode`: Function, return the active interaction mode.
+
+When a vector layer is selected, `C`, `V`, and `D` activate cursor, select, and
+draw mode respectively. Shortcuts are ignored while typing in a form field.
 
 Example in Python:
 

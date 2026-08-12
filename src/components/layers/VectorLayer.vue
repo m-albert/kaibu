@@ -2,29 +2,19 @@
   <div class="vector-layer">
     <section>
       <div class="block">
-        <b-tooltip label="Cursor" position="is-top">
+        <b-tooltip label="Cursor (C)" position="is-top">
           <button
             :class="{ 'is-primary': !config.draw_enable && !selectIsActive }"
-            @click="
-              disableSelectInteraction();
-              config.draw_enable = false;
-              updateDrawInteraction();
-              $forceUpdate();
-            "
+            @click="setInteractionMode('cursor')"
             class="button is-medium"
           >
             <b-icon icon="cursor-default-outline" size="is-medium"> </b-icon>
           </button>
         </b-tooltip>
-        <b-tooltip label="Select" position="is-top">
+        <b-tooltip label="Select (V)" position="is-top">
           <button
             :class="{ 'is-primary': !config.draw_enable && selectIsActive }"
-            @click="
-              enableSelectInteraction();
-              config.draw_enable = false;
-              updateDrawInteraction();
-              $forceUpdate();
-            "
+            @click="setInteractionMode('select')"
             class="button is-medium"
           >
             <b-icon icon="cursor-default" size="is-medium"> </b-icon>
@@ -46,14 +36,10 @@
           </button>
         </b-tooltip> -->
 
-        <b-tooltip label="Draw Mode" position="is-top">
+        <b-tooltip label="Draw Mode (D)" position="is-top">
           <button
             :class="{ 'is-primary': config.draw_enable }"
-            @click="
-              config.draw_enable = true;
-              updateDrawInteraction();
-              $forceUpdate();
-            "
+            @click="setInteractionMode('draw')"
             class="button is-medium"
           >
             <b-icon icon="lead-pencil" size="is-medium"> </b-icon>
@@ -550,6 +536,25 @@ export default {
     },
     async keyHandler(event) {
       if (!this.selected || !this.visible) return;
+      const target = event.target;
+      if (
+        target &&
+        (target.isContentEditable ||
+          ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName))
+      ) {
+        return;
+      }
+      if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+        const interactionModes = {
+          KeyC: "cursor",
+          KeyV: "select",
+          KeyD: "draw"
+        };
+        if (interactionModes[event.code]) {
+          this.setInteractionMode(interactionModes[event.code]);
+          return;
+        }
+      }
       if (this.config.key_press_callback) {
         const stopPropagation = await this.config.key_press_callback({
           code: event.code,
@@ -862,6 +867,12 @@ export default {
         _rintf: true,
         name: this.config.name,
         id: this.config.id,
+        set_interaction_mode(mode) {
+          me.setInteractionMode(mode);
+        },
+        get_interaction_mode() {
+          return me.getInteractionMode();
+        },
         clear_features() {
           me.vector_source.clear(true);
         },
@@ -1001,6 +1012,23 @@ export default {
     disableSelectInteraction() {
       this.select.setActive(false);
       this.selectIsActive = false;
+    },
+    setInteractionMode(mode) {
+      if (!["cursor", "select", "draw"].includes(mode)) {
+        throw new Error(`Unsupported interaction mode: ${mode}`);
+      }
+      if (mode === "select") {
+        this.enableSelectInteraction();
+      } else {
+        this.disableSelectInteraction();
+      }
+      this.config.draw_enable = mode === "draw";
+      this.updateDrawInteraction();
+      this.$forceUpdate();
+    },
+    getInteractionMode() {
+      if (this.config.draw_enable) return "draw";
+      return this.selectIsActive ? "select" : "cursor";
     },
     updateDrawInteraction() {
       if (this.selected && this.visible && this.config.draw_enable) {

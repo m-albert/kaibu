@@ -391,6 +391,12 @@ export default {
         viewer.setUserInterfaceCollapsed(false);
       }, 10);
       this.viewer = viewer;
+      if (this.config.color_map) {
+        this.setImageColorMap(
+          this.config.color_map,
+          this.config.color_map_component || 0
+        );
+      }
       this.$emit("update-extent", { id: this.config.id, extent: extent });
 
       itk_layer.getLayerAPI = this.getLayerAPI;
@@ -431,6 +437,12 @@ export default {
         async set_image(image) {
           const vtkImage = await me.normalizeImage(image);
           me.viewer.setImage(vtkImage);
+        },
+        set_image_color_map(colorMap, component = 0) {
+          me.setImageColorMap(colorMap, component);
+        },
+        get_image_color_map(component = 0) {
+          return me.getImageColorMap(component);
         }
       };
       for (let k of Object.keys(me.viewer)) {
@@ -442,6 +454,25 @@ export default {
         }
       }
       return api;
+    },
+    setImageColorMap(colorMap, component = 0) {
+      if (this.viewer.setImageColorMap) {
+        this.viewer.setImageColorMap(colorMap, component);
+      } else if (this.viewer.setColorMap) {
+        // Compatibility with the legacy ITK/VTK bundle used by this fork.
+        this.viewer.setColorMap(component, colorMap);
+      } else {
+        throw new Error("The ITK/VTK viewer does not expose a color-map API");
+      }
+    },
+    getImageColorMap(component = 0) {
+      if (this.viewer.getImageColorMap) {
+        return this.viewer.getImageColorMap(component);
+      }
+      if (this.viewer.getColorMap) {
+        return this.viewer.getColorMap(component);
+      }
+      throw new Error("The ITK/VTK viewer does not expose a color-map API");
     },
     getFiles() {
       return new Promise(resolve => {
